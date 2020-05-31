@@ -77,8 +77,8 @@ public class Produto implements Comparable<Produto>, Serializable{
 		this.dataCad = dataCad;
 	}
 	
-	public void adicionarQuantidade(Integer quant) {
-		estoque += quant;
+	public Integer adicionarQuantidade(Integer quant) {
+		return estoque += quant;
 	}
 	
 	public void decrementarQuantidade(Integer quant) throws SisComException {

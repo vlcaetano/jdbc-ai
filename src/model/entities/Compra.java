@@ -11,13 +11,13 @@ public class Compra implements Serializable{
 	
 	private Integer numCompra;
 	private Fornecedor fornecedor;
-	private ArrayList<ItemCompra> compraItens;
+	private List<ItemCompra> compraItens;
 	private Date dataCompra;
 	
 	public Compra() {
 	}
 
-	public Compra(Integer numCompra, Fornecedor fornecedor, ArrayList<ItemCompra> compraItens, Date dataCompra) {
+	public Compra(Integer numCompra, Fornecedor fornecedor, List<ItemCompra> compraItens, Date dataCompra) {
 		this.numCompra = numCompra;
 		this.fornecedor = fornecedor;
 		this.compraItens = compraItens;

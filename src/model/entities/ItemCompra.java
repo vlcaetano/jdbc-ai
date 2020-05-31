@@ -15,10 +15,10 @@ public class ItemCompra implements Serializable {
 	public ItemCompra() {
 	}
 
-	public ItemCompra(Produto produto, Integer quantCompra, Double valorCompra) {
+	public ItemCompra(Produto produto, Integer quantCompra) {
 		this.produto = produto;
 		this.quantCompra = quantCompra;
-		this.valorCompra = valorCompra;
+		this.valorCompra = (double) quantCompra * produto.getPrecoUnitario();
 	}
 
 	public Produto getProduto() {
