@@ -3,6 +3,7 @@ package model.entities;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Venda implements Serializable{
 
@@ -11,14 +12,14 @@ public class Venda implements Serializable{
 	private Integer numVenda;
 	private Cliente cliente;
 	private Vendedor vendedor;
-	private ArrayList<ItemVenda> vendaItens;
+	private List<ItemVenda> vendaItens;
 	private Integer formaPagto;
 	private Date dataVenda;
 	
 	public Venda() {
 	}
 
-	public Venda(Integer numVenda, Cliente cliente, Vendedor vendedor, ArrayList<ItemVenda> vendaItens,
+	public Venda(Integer numVenda, Cliente cliente, Vendedor vendedor, List<ItemVenda> vendaItens,
 			Integer formaPagto, Date dataVenda) {
 		this.numVenda = numVenda;
 		this.cliente = cliente;
@@ -52,7 +53,7 @@ public class Venda implements Serializable{
 		this.vendedor = vendedor;
 	}
 
-	public ArrayList<ItemVenda> getVendaItens() {
+	public List<ItemVenda> getVendaItens() {
 		return vendaItens;
 	}
 

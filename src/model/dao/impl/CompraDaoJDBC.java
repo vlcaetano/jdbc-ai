@@ -5,6 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import db.DB;
 import db.DbException;
@@ -13,6 +17,7 @@ import model.dao.CompraDao;
 import model.dao.DaoFactory;
 import model.dao.ProdutoDao;
 import model.entities.Compra;
+import model.entities.Fornecedor;
 import model.entities.ItemCompra;
 import model.entities.Produto;
 import model.exceptions.SisComException;
@@ -133,12 +138,66 @@ public class CompraDaoJDBC implements CompraDao {
 		} catch (SQLException e) {
 			throw new DbIntegrityException(e.getMessage());
 		} catch (SisComException e) {
-			//
+			System.out.println(e.getMensagemErro());
 		} finally {
 			DB.closeStatement(st);
 			DB.closeStatement(st2);
 			DB.closeStatement(st3);
 			DB.closeResultSet(rs);
 		}		
+	}
+
+	@Override
+	public List<Compra> encontrarCompras() { //deveria fazer retornando itemcompra para usar na tabela no FX
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		
+		try {
+			st = conn.prepareStatement(
+					"SELECT compra.*, fornecedor.Nome "
+					+ "FROM compra INNER JOIN fornecedor "
+					+ "ON compra.CodFornecedor = fornecedor.CodFornecedor "
+					+ "ORDER BY fornecedor.Nome");
+					
+			rs = st.executeQuery();
+			
+			List<Compra> list = new ArrayList<>();
+			Map<Integer, Fornecedor> map = new HashMap<>();
+			
+			while (rs.next()) {
+				
+				Fornecedor fornecedor = map.get(rs.getInt("CodFornecedor"));	
+				
+				if (fornecedor == null) {
+					fornecedor = instanciarFornecedor(rs);
+					map.put(rs.getInt("CodFornecedor"), fornecedor);
+				}
+							
+				Compra obj = instanciarCompra(rs, fornecedor);				
+				list.add(obj);
+			}
+			return list;
+			
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
+		}
+	}
+
+	private Compra instanciarCompra(ResultSet rs, Fornecedor fornecedor) throws SQLException {
+		Compra compra = new Compra();
+		compra.setNumCompra(rs.getInt("CodCompra"));
+		compra.setFornecedor(fornecedor);
+		compra.setDataCompra(rs.getDate("DataCompra"));
+		return compra;
+	}
+
+	private Fornecedor instanciarFornecedor(ResultSet rs) throws SQLException {
+		Fornecedor fornecedor = new Fornecedor();
+		fornecedor.setCodigo(rs.getInt("CodFornecedor"));
+		fornecedor.setNome(rs.getString("Nome"));
+		return fornecedor;
 	}
 }

@@ -81,11 +81,11 @@ public class Produto implements Comparable<Produto>, Serializable{
 		return estoque += quant;
 	}
 	
-	public void decrementarQuantidade(Integer quant) throws SisComException {
+	public Integer decrementarQuantidade(Integer quant) throws SisComException {
 		if (estoque - quant < 0) {
 			throw new SisComException(nome, estoque, "Estoque Insuficiente.");
 		} else {
-			estoque -= quant;
+			return estoque -= quant;
 		}
 	}
 

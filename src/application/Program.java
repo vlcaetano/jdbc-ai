@@ -7,6 +7,7 @@ import java.util.List;
 
 import model.dao.*;
 import model.entities.*;
+import model.exceptions.SisComException;
 
 public class Program {
 
@@ -16,6 +17,7 @@ public class Program {
 		VendedorDao vendedorDao = DaoFactory.criarVendedorDao();
 		ProdutoDao produtoDao = DaoFactory.criarProdutoDao();
 		CompraDao compraDao = DaoFactory.criarCompraDao();
+		VendaDao vendaDao = DaoFactory.criarVendaDao();
 		
 		/*Connection conn = DB.getConnection();
 		DB.closeConnection();*/
@@ -99,8 +101,36 @@ public class Program {
 		
 		System.out.println("Inserido! Novo cod = " + novaCompra.getNumCompra());*/
 		
-		System.out.println("\n\n==== Teste: Deletar Compra ====");
-		compraDao.deletarCompra(2);
+		/*System.out.println("\n\n==== Teste: Deletar Compra ====");
+		compraDao.deletarCompra(2);*/
+		
+		/*System.out.println("\n\n==== Teste: Venda ====");
+		List<ItemVenda> listaVenda = new ArrayList<>();
+		listaVenda.add(new ItemVenda(produtoDao.encontrarPorCodigo(1), 1));
+		listaVenda.add(new ItemVenda(produtoDao.encontrarPorCodigo(2), 2));
+		
+		double valorTotal = 0;
+		for (ItemVenda iv : listaVenda) {
+			valorTotal += iv.getValorVenda();
+		}
+		
+		Venda novaVenda = new Venda(null, clienteDao.encontrarPorCpf("00306099098"), 
+				vendedorDao.encontrarPorCpf("23332566059"),	listaVenda, 1, new Date());
+		
+		if (novaVenda.getFormaPagto() == 2 && valorTotal > novaVenda.getCliente().getLimiteCredito()) {
+			System.out.println("Venda não pode acontecer");
+		} else {
+			try {
+				vendaDao.fazerVenda(novaVenda);
+				System.out.println("Venda realizada com sucesso!");
+			} catch (SisComException e) {
+				e.printStackTrace();
+			}
+		}*/
+		
+		/*System.out.println("\n\n==== Teste: Deletar Venda ====");
+		vendaDao.deletarVenda(1);
+		System.out.println("Deletada!");*/
 	}
 
 }

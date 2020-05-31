@@ -16,11 +16,7 @@ public class SisComException extends Exception {
 	}
 	
 	public SisComException(String mensagemErro) {
-		super(mensagemErro);
-	}
-
-	public static long getSerialversionuid() {
-		return serialVersionUID;
+		this.mensagemErro = mensagemErro;
 	}
 
 	public String getNomeProduto() {

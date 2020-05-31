@@ -24,4 +24,8 @@ public class DaoFactory {
 	public static CompraDao criarCompraDao() {
 		return new CompraDaoJDBC(DB.getConnection());
 	}
+	
+	public static VendaDao criarVendaDao() {
+		return new VendaDaoJDBC(DB.getConnection());
+	}
 }

@@ -10,8 +10,6 @@ public class ItemCompra implements Serializable {
 	private Integer quantCompra;
 	private Double valorCompra;
 	
-	//private Integer numCompra; ???
-	
 	public ItemCompra() {
 	}
 
