@@ -64,11 +64,11 @@ public class Program {
 		fornecedorDao.deletarFornecedor(fornecedorDao.encontrarPorCnpj("40568022000177"));*/
 		
 		/*System.out.println("==== Teste: inserir cliente ====");
-		Cliente novoCliente = new Cliente(null, "José", "999995555", "jose@email.com", new Date(), "00306099098", 2000.00);
+		Cliente novoCliente = new Cliente(null, "Nikolas", "999984555", "nik@email.com", new Date(), "77594052005", 200.00);
 		clienteDao.inserirCliente(novoCliente);
-		//System.out.println("Inserido! Novo cod = " + novoCliente.getCodigo());
+		System.out.println("Inserido! Novo cod = " + novoCliente.getCodigo());*/
 		
-		System.out.println("==== Teste: inserir cliente ====");
+		/*System.out.println("==== Teste: inserir vendedor ====");
 		Vendedor novoVendedor = new Vendedor(null, "Carlo", "999996666", "carlo@email.com", new Date(), "23332566059", 2000.00);
 		vendedorDao.inserirVendedor(novoVendedor);
 		System.out.println("Inserido! Novo cod = " + novoVendedor.getCodigo());*/

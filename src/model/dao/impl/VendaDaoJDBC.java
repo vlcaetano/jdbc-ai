@@ -68,6 +68,8 @@ public class VendaDaoJDBC implements VendaDao {
 			}
 		} catch (SQLException e) {
 			throw new DbException(e.getMessage());
+		} catch (SisComException e) {
+			throw new SisComException("Erro ao decrementar estoque!");
 		} finally {
 			DB.closeStatement(st);
 		}
