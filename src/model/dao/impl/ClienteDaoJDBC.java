@@ -95,7 +95,8 @@ public class ClienteDaoJDBC implements ClienteDao {
 		try {
 			st = conn.prepareStatement(
 					"SELECT * "
-					+ "FROM cliente");
+					+ "FROM cliente "
+					+ "ORDER BY Nome");
 			rs = st.executeQuery();
 			
 			while (rs.next()) {

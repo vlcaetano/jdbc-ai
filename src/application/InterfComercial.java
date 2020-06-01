@@ -1,10 +1,13 @@
 package application;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import controller.Comercial;
+import db.DbIntegrityException;
 import model.entities.Cliente;
 import model.entities.Compra;
 import model.entities.Fornecedor;
@@ -35,7 +38,7 @@ public class InterfComercial {
 			System.out.println("5 - Consultar...");
 			System.out.println("6 - Listar...");
 			System.out.println("7 - Excluir...");
-			System.out.println("8 - ");
+			System.out.println("8 - Listar por periodo...");
 			System.out.println("9 - ");			
 			System.out.println("0 - Sair");
 			opcao = Console.readInt("Digite a opção desejada:");
@@ -53,17 +56,17 @@ public class InterfComercial {
 			case 4:
 				fazerVenda();
 				break;
-			/*case 5:
-				
+			case 5:
+				consultar();
 				break;
-			/*case 6:
-				
+			case 6:
+				listar();
 				break;
-			/*case 7:
-				
+			case 7:
+				excluir();
 				break;
-			/*case 8:
-				
+			case 8:
+				listarPorPeriodo();
 				break;
 			/*case 9:
 				
@@ -78,6 +81,213 @@ public class InterfComercial {
 
 	}
 
+	private static void listarPorPeriodo() {
+		//listar venda
+		
+		//listar compra
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		Date dataInicio = null;
+		Date dataFinal = null;
+		try {
+			dataInicio = sdf.parse(Console.readLine("Informe a data:"));
+			dataFinal = sdf.parse(Console.readLine("Informe a data:"));
+			List<Compra> lista = objBiz.listarCompras(dataInicio, dataFinal);
+			for (Compra c : lista) {
+				System.out.println("Data: " + sdf.format(c.getDataCompra())
+				+ " - Fornecedor: " + c.getFornecedor().getNome()
+				+ " - Código da compra: " + c.getNumCompra());
+				
+				System.out.println("Produtos comprados:");
+				for (ItemCompra ic : c.getCompraItens()) {
+					System.out.println("	" + ic.getProduto().getNome() + " - " 
+							+ ic.getQuantCompra() + " - R$" 
+							+ String.format("%.2f", ic.getValorCompra()));
+				}
+				System.out.println();
+			}
+		} catch (ParseException e) {
+			System.out.println("Data Inválida!");
+		}
+	}
+
+	private static void excluir() {
+		String cpf, cnpj;
+		int cod;
+		int selecao;
+		do {
+			selecao = Console.readInt("Deseja excluir (1)Fornecedor, (2)Cliente, (3)Vendedor, "
+					+ "\n(4)Produto, (5)Compra, (6)Venda:");
+		} while (selecao < 1 || selecao > 6);
+		try {
+			switch (selecao) {
+			case 1:
+				cnpj = Console.readLine("CNPJ do fornecedor:");
+				Fornecedor fornecedor = objBiz.pesquisarFornecedor(cnpj);
+				if (fornecedor != null) {
+					objBiz.deletarFonecedor(fornecedor);
+					System.out.println("Fornecedor deletado com sucesso!");
+				} else {
+					System.out.println("Fornecedor não encontrado!");
+				}
+				break;
+			case 2:
+				cpf = Console.readLine("CPF do cliente:");
+				Cliente cliente = objBiz.pesquisarCliente(cpf);
+				if (cliente != null) {
+					objBiz.deletarCliente(cliente);
+					System.out.println("Cliente deletado com sucesso!");
+				} else {
+					System.out.println("Cliente não encontrado!");
+				}
+				break;
+			case 3:
+				cpf = Console.readLine("CPF do vendedor:");
+				Vendedor vendedor = objBiz.pesquisarVendedor(cpf);
+				if (vendedor != null) {
+					objBiz.deletarVendedor(vendedor);
+					System.out.println("Vendedor deletado com sucesso!");
+				} else {
+					System.out.println("Vendedor não encontrado!");
+				}
+				break;
+			case 4:
+				cod = Console.readInt("Código do produto:");
+				Produto produto = objBiz.pesquisarProduto(cod);
+				if (produto != null) {
+					objBiz.deletarProduto(cod);
+					System.out.println("Produto deletado com sucesso!");
+				} else {
+					System.out.println("Produto não encontrado!");
+				}
+				break;
+			case 5:
+				cod = Console.readInt("Código da compra:");
+				try {
+					objBiz.deletarCompra(cod);
+					System.out.println("Compra deletada com sucesso!");
+				} catch (SisComException e) {
+					System.out.println(e.getMensagemErro());
+				}
+				break;
+			case 6:
+				cod = Console.readInt("Código da venda:");
+				try {
+					objBiz.deletarVenda(cod);
+					System.out.println("Venda deletada com sucesso!");
+				} catch (SisComException e) {
+					System.out.println(e.getMensagemErro());
+				}
+				break;
+			}
+		} catch (DbIntegrityException e) {
+			System.out.println("Não é possível deletar! Há conexão de outras tabelas com o elemento");
+		}
+	}
+
+	private static void listar() {
+		int selecao;
+		do {
+			selecao = Console.readInt("Deseja listar (1)Fornecedores, (2)Clientes, (3)Vendedores, (4)Produtos:");
+		} while (selecao < 1 || selecao > 4);
+		
+		switch (selecao) {
+		case 1:
+			List<Fornecedor> listaFornecedor = new ArrayList<>();
+			listaFornecedor = objBiz.listarFornecedores();
+			//listaFornecedor.sort((x1,x2) -> x1.compareTo(x2)); Listas ordenadas pela query com ORDER BY
+			for (Fornecedor f : listaFornecedor) {
+				System.out.println(f);
+			}
+			break;
+		case 2:
+			List<Cliente> listaCliente = new ArrayList<>();
+			listaCliente = objBiz.listarClientes();
+			//listaCliente.sort((x1,x2) -> x1.compareTo(x2));
+			for (Cliente c : listaCliente) {
+				System.out.println(c);
+			}
+			break;
+		case 3:
+			List<Vendedor> listaVendedor = new ArrayList<>();
+			listaVendedor = objBiz.listarVendedores();
+			//listaVendedor.sort((x1,x2) -> x1.compareTo(x2));
+			for (Vendedor v : listaVendedor) {
+				System.out.println(v);
+			}
+			break;
+		case 4:
+			List<Produto> listaProduto = new ArrayList<>();
+			int selecao2;
+			do {
+				selecao2 = Console.readInt("Listar (1)Produtos abaixo do estoque mínimo (2)Todos:");
+			} while (selecao2 != 1 && selecao2 != 2);
+			
+			if (selecao2 == 1) {
+				listaProduto = objBiz.listarAbaixoEstoqueMin();
+			} else {
+				listaProduto = objBiz.listarProdutos();
+			}
+			
+			if (listaProduto != null) {
+				//listaProduto.sort((x1,x2) -> x1.compareTo(x2));
+				for (Produto p : listaProduto) {
+					System.out.println(p);
+				}
+			} else {
+				System.out.println("Não foram encontrados produtos");
+			}
+			break;
+		}
+	}
+
+	private static void consultar() {
+		String cpf, cnpj;
+		int cod;
+		int selecao;
+		do {
+			selecao = Console.readInt("Deseja consultar (1)Fornecedor, (2)Cliente, (3)Vendedor, (4)Produto:");
+		} while (selecao < 1 || selecao > 4);
+		
+		switch (selecao) {
+		case 1:
+			cnpj = Console.readLine("CNPJ do fornecedor:");
+			Fornecedor fornecedor = objBiz.pesquisarFornecedor(cnpj);
+			if (fornecedor != null) {
+				System.out.println(fornecedor);
+			} else {
+				System.out.println("Fornecedor não encontrado!");
+			}
+			break;
+		case 2:
+			cpf = Console.readLine("CPF do cliente:");
+			Cliente cliente = objBiz.pesquisarCliente(cpf);
+			if (cliente != null) {
+				System.out.println(cliente);
+			} else {
+				System.out.println("Cliente não encontrado!");
+			}
+			break;
+		case 3:
+			cpf = Console.readLine("CPF do vendedor:");
+			Vendedor vendedor = objBiz.pesquisarVendedor(cpf);
+			if (vendedor != null) {
+				System.out.println(vendedor);
+			} else {
+				System.out.println("Vendedor não encontrado!");
+			}
+			break;
+		case 4:
+			cod = Console.readInt("Código do produto:");
+			Produto produto = objBiz.pesquisarProduto(cod);
+			if (produto != null) {
+				System.out.println(produto);
+			} else {
+				System.out.println("Produto não encontrado!");
+			}
+			break;
+		}
+	}
+
 	private static void fazerVenda() {
 		List<ItemVenda> listaVenda = new ArrayList<>();
 		int cod;
@@ -89,6 +299,7 @@ public class InterfComercial {
 			do {
 				teste = true;
 				cod = Console.readInt("Informe o código do produto:");
+				
 				for (ItemVenda iv : listaVenda) {
 					if (cod == iv.getProduto().getCodigo()) {
 						System.out.println("Erro! Produto já cadastrado");
@@ -105,7 +316,7 @@ public class InterfComercial {
 			} while (!teste);
 
 			do {
-				qtd = Console.readInt("Informe a quantidade comprada:");
+				qtd = Console.readInt("Informe a quantidade vendida:");
 				if (produto.getEstoque() < qtd) {
 					System.out.println("Erro! O estoque total do produto é: " + produto.getEstoque());
 				}
@@ -232,8 +443,11 @@ public class InterfComercial {
 			objBiz.inserirPessoa(cliente);
 		} else if (selecao == 2) {
 			String cpf = Console.readLine("CPF:");
-			Double metaMensal = Console.readDouble("Meta mensal:");
-			
+			Double metaMensal;
+			do {
+				metaMensal = Console.readDouble("Meta mensal:");
+			} while (metaMensal <= 0);
+
 			Vendedor vendedor = new Vendedor(null, nome, tel, email, dataCad, cpf, metaMensal);
 			
 			objBiz.inserirPessoa(vendedor);
@@ -247,5 +461,4 @@ public class InterfComercial {
 		}
 		System.out.println("Inserido com sucesso!");
 	}
-
 }

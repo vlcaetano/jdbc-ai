@@ -95,7 +95,8 @@ public class VendedorDaoJDBC implements VendedorDao {
 		try {
 			st = conn.prepareStatement(
 					"SELECT * "
-					+ "FROM vendedor");
+					+ "FROM vendedor "
+					+ "ORDER BY Nome");
 			rs = st.executeQuery();
 			
 			while (rs.next()) {

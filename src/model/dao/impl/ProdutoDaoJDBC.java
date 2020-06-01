@@ -88,8 +88,41 @@ public class ProdutoDaoJDBC implements ProdutoDao {
 		try {
 			st = conn.prepareStatement(
 					"SELECT * "
-					+ "FROM produto");
+					+ "FROM produto "
+					+ "ORDER BY Nome");
 			rs = st.executeQuery();
+			
+			while (rs.next()) {
+				Produto produto = instanciarProduto(rs);
+				lista.add(produto);
+			}
+			return lista;
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeResultSet(rs);
+			DB.closeStatement(st);
+		}
+	}
+	
+	@Override
+	public List<Produto> encontrarAbaixoEstoqueMin(){
+		List<Produto> lista = new ArrayList<>();
+		
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		
+		try {
+			st = conn.prepareStatement(
+					"SELECT * "
+					+ "FROM produto "
+					+ "WHERE Estoque < EstoqueMinimo "
+					+ "ORDER BY Nome");
+			rs = st.executeQuery();
+			
+			if (!rs.next()) {
+				return null;
+			}
 			
 			while (rs.next()) {
 				Produto produto = instanciarProduto(rs);

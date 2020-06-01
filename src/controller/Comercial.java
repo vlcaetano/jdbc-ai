@@ -1,5 +1,7 @@
 package controller;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import model.dao.ClienteDao;
@@ -53,6 +55,30 @@ public class Comercial {
 		return vendedorDao.encontrarPorCpf(cpf);
 	}
 	
+	public List<Fornecedor> listarFornecedores(){
+		return fornecedorDao.encontrarTodos();
+	}
+	
+	public List<Cliente> listarClientes(){
+		return clienteDao.encontrarTodos();
+	}
+	
+	public List<Vendedor> listarVendedores(){
+		return vendedorDao.encontrarTodos();
+	}
+	
+	public void deletarFonecedor(Fornecedor obj) {
+		fornecedorDao.deletarFornecedor(obj);
+	}
+	
+	public void deletarCliente(Cliente obj) {
+		clienteDao.deletarCliente(obj);
+	}
+	
+	public void deletarVendedor(Vendedor obj) {
+		vendedorDao.deletarVendedor(obj);
+	}
+	
 	public void inserirProduto(Produto produto) {
 		produtoDao.inserirProduto(produto);
 	}
@@ -61,11 +87,47 @@ public class Comercial {
 		return produtoDao.encontrarPorCodigo(cod);
 	}
 	
+	public List<Produto> listarProdutos(){
+		return produtoDao.encontrarTodos();
+	}
+	
+	public List<Produto> listarAbaixoEstoqueMin(){
+		return produtoDao.encontrarAbaixoEstoqueMin();
+	}
+	
+	public void deletarProduto(Integer cod) {
+		produtoDao.deletarProduto(cod);
+	}
+	
 	public void fazerCompra(Compra compra) {
 		compraDao.fazerCompra(compra);
 	}
 	
+	public void deletarCompra(Integer cod) throws SisComException {
+		compraDao.deletarCompra(cod);
+	}
+	
+	public List<Compra> listarCompras(Date dataInicio, Date dataFinal){
+		List<Compra> lista = new ArrayList<>();
+		List<Compra> listaPorPeriodo = new ArrayList<>();
+		lista = compraDao.encontrarCompras();
+		for (Compra c : lista) {
+			if (c.getDataCompra().compareTo(dataInicio) >= 0 && 
+					c.getDataCompra().compareTo(dataFinal) <= 0) {
+				listaPorPeriodo.add(c);
+			}
+		}
+		listaPorPeriodo.sort((c1, c2) -> c1.getFornecedor().getNome().toUpperCase()
+				.compareTo(c2.getFornecedor().getNome().toUpperCase()));
+		listaPorPeriodo.sort((c1, c2) -> c2.getDataCompra().compareTo(c1.getDataCompra()));
+		return listaPorPeriodo;
+	}
+	
 	public void fazerVenda(Venda venda) throws SisComException {
 		vendaDao.fazerVenda(venda);
+	}
+	
+	public void deletarVenda(Integer cod) throws SisComException {
+		vendaDao.deletarVenda(cod);
 	}
 }

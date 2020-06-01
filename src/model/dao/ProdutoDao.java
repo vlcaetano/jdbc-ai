@@ -9,5 +9,6 @@ public interface ProdutoDao {
 	void inserirProduto(Produto obj);
 	void deletarProduto(Integer cod);
 	List<Produto> encontrarTodos();
+	List<Produto> encontrarAbaixoEstoqueMin();
 	Produto encontrarPorCodigo(Integer cod);
 }

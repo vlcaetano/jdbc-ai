@@ -44,7 +44,7 @@ public class Compra implements Serializable{
 		return compraItens;
 	}
 
-	public void setCompraItens(ArrayList<ItemCompra> compraItens) {
+	public void setCompraItens(List<ItemCompra> compraItens) {
 		this.compraItens = compraItens;
 	}
 

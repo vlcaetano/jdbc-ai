@@ -108,7 +108,7 @@ public class CompraDaoJDBC implements CompraDao {
 	}
 	
 	@Override
-	public void deletarCompra(Integer codCompra) {
+	public void deletarCompra(Integer codCompra) throws SisComException {
 		ProdutoDao produtoDao = DaoFactory.criarProdutoDao();
 		
 		PreparedStatement st = null;
@@ -122,6 +122,9 @@ public class CompraDaoJDBC implements CompraDao {
 			st = conn.prepareStatement("SELECT CodProduto, QuantCompra FROM itemcompra WHERE CodCompra = ?");
 			st.setInt(1, codCompra);
 			rs = st.executeQuery();
+			if (!rs.next()) {
+				throw new SisComException("Não foi encontrada a compra para o código");
+			}
 			while (rs.next()) {
 				Produto produto = produtoDao.encontrarPorCodigo(rs.getInt("CodProduto"));
 				produto.decrementarQuantidade(rs.getInt("QuantCompra"));
@@ -137,8 +140,6 @@ public class CompraDaoJDBC implements CompraDao {
 			st3.executeUpdate();
 		} catch (SQLException e) {
 			throw new DbIntegrityException(e.getMessage());
-		} catch (SisComException e) {
-			System.out.println(e.getMensagemErro());
 		} finally {
 			DB.closeStatement(st);
 			DB.closeStatement(st2);
@@ -190,8 +191,33 @@ public class CompraDaoJDBC implements CompraDao {
 		Compra compra = new Compra();
 		compra.setNumCompra(rs.getInt("CodCompra"));
 		compra.setFornecedor(fornecedor);
+		compra.setCompraItens(criarListaItemCompra(compra.getNumCompra()));
 		compra.setDataCompra(rs.getDate("DataCompra"));
 		return compra;
+	}
+	
+	private List<ItemCompra> criarListaItemCompra(Integer codCompra){
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		List<ItemCompra> lista = new ArrayList<>();
+		ProdutoDao produtoDao = DaoFactory.criarProdutoDao();
+		try {
+			st = conn.prepareStatement("SELECT * FROM itemcompra WHERE CodCompra = ?");			
+			st.setInt(1, codCompra);
+			
+			rs = st.executeQuery();
+			while (rs.next()) {
+				Produto produto = produtoDao.encontrarPorCodigo(rs.getInt("CodProduto"));
+				lista.add(new ItemCompra(produto, rs.getInt("QuantCompra")));
+			}
+			return lista;
+			
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
+		}
 	}
 
 	private Fornecedor instanciarFornecedor(ResultSet rs) throws SQLException {

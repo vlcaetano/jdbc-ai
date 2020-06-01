@@ -69,7 +69,7 @@ public class FornecedorDaoJDBC implements FornecedorDao {
 	}
 
 	@Override
-	public void deletarFornecedor(Fornecedor obj) { // deixar por objeto mesmo?
+	public void deletarFornecedor(Fornecedor obj) {
 		PreparedStatement st = null;
 		
 		try {
@@ -95,7 +95,8 @@ public class FornecedorDaoJDBC implements FornecedorDao {
 		try {
 			st = conn.prepareStatement(
 					"SELECT * "
-					+ "FROM fornecedor");
+					+ "FROM fornecedor "
+					+ "ORDER BY Nome");
 			rs = st.executeQuery();
 			
 			while (rs.next()) {

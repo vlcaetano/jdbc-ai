@@ -113,7 +113,7 @@ public class VendaDaoJDBC implements VendaDao {
 	}
 	
 	@Override
-	public void deletarVenda(Integer codVenda) {
+	public void deletarVenda(Integer codVenda) throws SisComException {
 		ProdutoDao produtoDao = DaoFactory.criarProdutoDao();
 		
 		PreparedStatement st = null;
@@ -127,6 +127,11 @@ public class VendaDaoJDBC implements VendaDao {
 			st = conn.prepareStatement("SELECT CodProduto, QuantVenda FROM itemvenda WHERE CodVenda = ?");
 			st.setInt(1, codVenda);
 			rs = st.executeQuery();
+			
+			if (!rs.next()) {
+				throw new SisComException("Não foi encontrada a venda para o código");
+			}
+			
 			while (rs.next()) {
 				Produto produto = produtoDao.encontrarPorCodigo(rs.getInt("CodProduto"));
 				produto.adicionarQuantidade(rs.getInt("QuantVenda"));
