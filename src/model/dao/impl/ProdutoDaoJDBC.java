@@ -124,10 +124,10 @@ public class ProdutoDaoJDBC implements ProdutoDao {
 				return null;
 			}
 			
-			while (rs.next()) {
+			 do {
 				Produto produto = instanciarProduto(rs);
 				lista.add(produto);
-			}
+			} while (rs.next());
 			return lista;
 		} catch (SQLException e) {
 			throw new DbException(e.getMessage());
@@ -167,7 +167,6 @@ public class ProdutoDaoJDBC implements ProdutoDao {
 
 	private Produto instanciarProduto(ResultSet rs) throws SQLException {
 		Produto obj = new Produto();
-		//CodProduto, Nome, PrecoUnitario, Estoque, EstoqueMinimo, DataCadastro
 		obj.setCodigo(rs.getInt("CodProduto"));
 		obj.setNome(rs.getString("Nome"));
 		obj.setPrecoUnitario(rs.getDouble("PrecoUnitario"));

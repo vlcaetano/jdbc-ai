@@ -19,7 +19,7 @@ public class Comercial {
 	/*private List<Pessoa> pessoas = new ArrayList<>();
 	private List<Produto> produtos = new ArrayList<>();
 	private List<Compra> compras;  = new ArrayList<>();
-	private List<Venda> vendas  = new ArrayList<>();*/
+	private List<Venda> vendas  = new ArrayList<>();*/ //Controle feito por banco de dados
 	
 	private FornecedorDao fornecedorDao = DaoFactory.criarFornecedorDao();
 	private ClienteDao clienteDao = DaoFactory.criarClienteDao();
@@ -31,7 +31,7 @@ public class Comercial {
 	public Comercial() {
 	}
 	
-	public void inserirPessoa(Pessoa pessoa) {
+	public void inserirPessoa(Pessoa pessoa) throws SisComException {
 		if(pessoa instanceof Cliente) {
 			clienteDao.inserirCliente((Cliente)pessoa);
 		}
@@ -79,6 +79,18 @@ public class Comercial {
 		vendedorDao.deletarVendedor(obj);
 	}
 	
+	public List<String> estatisticasFornecedores() {
+		return fornecedorDao.estatisticaFornecedor();
+	}
+	
+	public List<String> estatisticasClientes() {
+		return clienteDao.estatisticaCliente();
+	}
+	
+	public List<String> estatisticasVendedores(){
+		return vendedorDao.estatisticaVendedor();
+	}
+	
 	public void inserirProduto(Produto produto) {
 		produtoDao.inserirProduto(produto);
 	}
@@ -107,18 +119,19 @@ public class Comercial {
 		compraDao.deletarCompra(cod);
 	}
 	
-	public List<Compra> listarCompras(Date dataInicio, Date dataFinal){
-		List<Compra> lista = new ArrayList<>();
+	public List<Compra> listarComprasPorFornecedor(Date dataInicio, Date dataFinal, String nome){
+		List<Compra> lista = compraDao.encontrarComprasNomeFornecedor(nome);
+		if (lista == null) {
+			return null;
+		}
+		
 		List<Compra> listaPorPeriodo = new ArrayList<>();
-		lista = compraDao.encontrarCompras();
 		for (Compra c : lista) {
 			if (c.getDataCompra().compareTo(dataInicio) >= 0 && 
 					c.getDataCompra().compareTo(dataFinal) <= 0) {
 				listaPorPeriodo.add(c);
 			}
 		}
-		listaPorPeriodo.sort((c1, c2) -> c1.getFornecedor().getNome().toUpperCase()
-				.compareTo(c2.getFornecedor().getNome().toUpperCase()));
 		listaPorPeriodo.sort((c1, c2) -> c2.getDataCompra().compareTo(c1.getDataCompra()));
 		return listaPorPeriodo;
 	}
@@ -129,5 +142,39 @@ public class Comercial {
 	
 	public void deletarVenda(Integer cod) throws SisComException {
 		vendaDao.deletarVenda(cod);
+	}
+	
+	public List<Venda> listarVendasPorCliente(Date dataInicio, Date dataFinal, String nome){
+		List<Venda> lista = vendaDao.encontrarVendasNomeCliente(nome);
+		if (lista == null) {
+			return null;
+		}
+		
+		List<Venda> listaPorPeriodo = new ArrayList<>();
+		for (Venda v : lista) {
+			if (v.getDataVenda().compareTo(dataInicio) >= 0 && 
+					v.getDataVenda().compareTo(dataFinal) <= 0) {
+				listaPorPeriodo.add(v);
+			}
+		}
+		listaPorPeriodo.sort((c1, c2) -> c2.getDataVenda().compareTo(c1.getDataVenda()));
+		return listaPorPeriodo;
+	}
+	
+	public List<Venda> listarVendasPorVendedor(Date dataInicio, Date dataFinal, String nome){
+		List<Venda> lista = vendaDao.encontrarVendasNomeVendedor(nome);
+		if (lista == null) {
+			return null;
+		}
+		
+		List<Venda> listaPorPeriodo = new ArrayList<>();
+		for (Venda v : lista) {
+			if (v.getDataVenda().compareTo(dataInicio) >= 0 && 
+					v.getDataVenda().compareTo(dataFinal) <= 0) {
+				listaPorPeriodo.add(v);
+			}
+		}
+		listaPorPeriodo.sort((c1, c2) -> c2.getDataVenda().compareTo(c1.getDataVenda()));
+		return listaPorPeriodo;
 	}
 }

@@ -42,6 +42,6 @@ public class Vendedor extends Pessoa {
 
 	@Override
 	public String toString() {
-		return super.toString() + " Vendedor [cpf=" + cpf + ", metaMensal=" + metaMensal + "]";
+		return super.toString() + " - CPF: " + cpf + " - Meta mensal: R$" + String.format("%.2f", metaMensal);
 	}
 }

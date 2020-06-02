@@ -1,6 +1,7 @@
 package model.entities;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import model.exceptions.SisComException;
@@ -116,8 +117,11 @@ public class Produto implements Comparable<Produto>, Serializable{
 
 	@Override
 	public String toString() {
-		return "Produto [codigo=" + codigo + ", nome=" + nome + ", precoUnitario=" + precoUnitario + ", estoque="
-				+ estoque + ", estoqueMinimo=" + estoqueMinimo + ", dataCad=" + dataCad + "]";
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		return "Código: " + codigo + " - Nome: " + nome 
+				+ " - Preço unitário: R$" + String.format("%.2f", precoUnitario)
+				+ " - Estoque: " + estoque + " - Estoque Mínimo: " + estoqueMinimo 
+				+ " - Data cadastro: " + sdf.format(dataCad);
 	}
 
 	@Override

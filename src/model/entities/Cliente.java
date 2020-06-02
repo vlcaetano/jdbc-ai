@@ -42,6 +42,6 @@ public class Cliente extends Pessoa {
 
 	@Override
 	public String toString() {
-		return super.toString() + " Cliente [cpf=" + cpf + ", limiteCredito=" + limiteCredito + "]";
+		return super.toString() + " - CPF: " + cpf + " - Limite de Crédito: R$" + String.format("%.2f", limiteCredito);
 	}
 }

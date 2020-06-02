@@ -39,7 +39,7 @@ public class InterfComercial {
 			System.out.println("6 - Listar...");
 			System.out.println("7 - Excluir...");
 			System.out.println("8 - Listar por periodo...");
-			System.out.println("9 - ");			
+			System.out.println("9 - Estatísticas...");			
 			System.out.println("0 - Sair");
 			opcao = Console.readInt("Digite a opção desejada:");
 			
@@ -68,9 +68,9 @@ public class InterfComercial {
 			case 8:
 				listarPorPeriodo();
 				break;
-			/*case 9:
-				
-				break;*/
+			case 9:
+				estatisticas();
+				break;
 			case 0:
 				// Sair
 				break;
@@ -81,32 +81,98 @@ public class InterfComercial {
 
 	}
 
-	private static void listarPorPeriodo() {
-		//listar venda
+	private static void estatisticas() {
+		int selecao;
+		List<String> lista = new ArrayList<>();
+		do {
+			selecao = Console.readInt("Deseja estatíscas dos (1)Fornecedores, (2)Clientes, (3)Vendedores:");
+		} while (selecao < 1 || selecao > 3);
 		
-		//listar compra
+		switch (selecao) {
+		case 1:
+			lista = objBiz.estatisticasFornecedores();
+			break;
+		case 2:
+			lista = objBiz.estatisticasClientes();
+			break;
+		case 3:
+			lista = objBiz.estatisticasVendedores();
+			break;
+		}
+		if (lista == null) {
+			System.out.println("Erro, lista vazia!");
+		}
+		for (String s : lista) {
+			System.out.println(s);
+		}
+	}
+
+	private static void listarPorPeriodo() {
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 		Date dataInicio = null;
 		Date dataFinal = null;
+		String nome;
+		
 		try {
-			dataInicio = sdf.parse(Console.readLine("Informe a data:"));
-			dataFinal = sdf.parse(Console.readLine("Informe a data:"));
-			List<Compra> lista = objBiz.listarCompras(dataInicio, dataFinal);
-			for (Compra c : lista) {
-				System.out.println("Data: " + sdf.format(c.getDataCompra())
-				+ " - Fornecedor: " + c.getFornecedor().getNome()
-				+ " - Código da compra: " + c.getNumCompra());
+			dataInicio = sdf.parse(Console.readLine("Informe a data inicial:"));
+			dataFinal = sdf.parse(Console.readLine("Informe a data final:"));
+		} catch (ParseException e) {
+			System.out.println("Data Inválida!");
+		}
+		
+		int selecao;
+		do {
+			selecao = Console.readInt("Deseja listar (1)Compras (2)Vendas");
+		} while (selecao != 1 && selecao != 2);
+		if (selecao == 1) {
+			nome = Console.readLine("Nome do fornecedor:");
+			List<Compra> listaCompra = objBiz.listarComprasPorFornecedor(dataInicio, dataFinal, nome);
+			if (listaCompra == null) {
+				System.out.println("Nenhum fornecedor encontrado!");
+				return;
+			}
+			for (Compra c : listaCompra) {
+				System.out.println(c);
 				
 				System.out.println("Produtos comprados:");
 				for (ItemCompra ic : c.getCompraItens()) {
-					System.out.println("	" + ic.getProduto().getNome() + " - " 
-							+ ic.getQuantCompra() + " - R$" 
-							+ String.format("%.2f", ic.getValorCompra()));
+					System.out.println("	" + ic);
 				}
 				System.out.println();
 			}
-		} catch (ParseException e) {
-			System.out.println("Data Inválida!");
+		} else {
+			List<Venda> listaVenda = new ArrayList<>();
+			do {
+				selecao = Console.readInt("Buscar lista por (1)Cliente (2)Vendedor");
+			} while (selecao != 1 && selecao != 2);
+			
+			if (selecao == 1) {
+				nome = Console.readLine("Nome do cliente:");
+				listaVenda = objBiz.listarVendasPorCliente(dataInicio, dataFinal, nome);
+				if (listaVenda == null) {
+					System.out.println("Nenhum cliente encontrado!");
+					return;
+				}
+			} else {
+				nome = Console.readLine("Nome do vendedor:");
+				listaVenda = objBiz.listarVendasPorVendedor(dataInicio, dataFinal, nome);
+				if (listaVenda == null) {
+					System.out.println("Nenhum vendedor encontrado!");
+					return;
+				}
+			}
+			
+			listaVenda.sort((c1, c2) -> c2.getDataVenda().compareTo(c1.getDataVenda()));
+			
+			for (Venda v : listaVenda) {
+				System.out.println(v);
+				
+				System.out.println("Produtos comprados:");
+				for (ItemVenda iv : v.getVendaItens()) {
+					System.out.println("	" + iv);
+				}
+				System.out.println();
+			}
 		}
 	}
 
@@ -162,25 +228,19 @@ public class InterfComercial {
 				break;
 			case 5:
 				cod = Console.readInt("Código da compra:");
-				try {
-					objBiz.deletarCompra(cod);
-					System.out.println("Compra deletada com sucesso!");
-				} catch (SisComException e) {
-					System.out.println(e.getMensagemErro());
-				}
+				objBiz.deletarCompra(cod);
+				System.out.println("Compra deletada com sucesso!");
 				break;
 			case 6:
 				cod = Console.readInt("Código da venda:");
-				try {
-					objBiz.deletarVenda(cod);
-					System.out.println("Venda deletada com sucesso!");
-				} catch (SisComException e) {
-					System.out.println(e.getMensagemErro());
-				}
+				objBiz.deletarVenda(cod);
+				System.out.println("Venda deletada com sucesso!");
 				break;
 			}
 		} catch (DbIntegrityException e) {
 			System.out.println("Não é possível deletar! Há conexão de outras tabelas com o elemento");
+		} catch (SisComException e) {
+			System.out.println(e.getMensagemErro());
 		}
 	}
 
@@ -414,11 +474,19 @@ public class InterfComercial {
 
 	private static void inserirProduto() {
 		String nome = Console.readLine("Nome:");
-		Double precoUnitario = Console.readDouble("Preço unitário:");
-		Integer estoque = Console.readInt("Estoque:");
-		Integer estoqueMinimo = Console.readInt("Estoque mínimo:");
-		Date dataCad = new Date();
+		Double precoUnitario;
+		Integer estoque;
+		Integer estoqueMinimo;
+		do {
+			precoUnitario = Console.readDouble("Preço unitário:");
+			estoque = Console.readInt("Estoque:");
+			estoqueMinimo = Console.readInt("Estoque mínimo:");
+			if (precoUnitario <= 0|| estoque <= 0 || estoqueMinimo <= 0) {
+				System.out.println("Erro! O preço e/ou os valores de estoque têm de ser positivos");
+			}
+		} while (precoUnitario <= 0|| estoque <= 0 || estoqueMinimo <= 0);
 		
+		Date dataCad = new Date();
 		Produto produto = new Produto(null, nome, precoUnitario, estoque, estoqueMinimo, dataCad);
 		
 		objBiz.inserirProduto(produto);
@@ -433,32 +501,39 @@ public class InterfComercial {
 		
 		int selecao;
 
-		selecao = Console.readInt("Deseja efetuar o cadastro de Cliente(1), Vendedor(2) ou Fornecedor(3):");
-		if (selecao == 1) {
-			String cpf = Console.readLine("CPF:");
-			Double limiteCredito = Console.readDouble("Limite de crédito:");
-			
-			Cliente cliente = new Cliente(null, nome, tel, email, dataCad, cpf, limiteCredito);
-			
-			objBiz.inserirPessoa(cliente);
-		} else if (selecao == 2) {
-			String cpf = Console.readLine("CPF:");
-			Double metaMensal;
-			do {
-				metaMensal = Console.readDouble("Meta mensal:");
-			} while (metaMensal <= 0);
+		do {
+			selecao = Console.readInt("Deseja efetuar o cadastro de Cliente(1), Vendedor(2) ou Fornecedor(3):");
+		} while (selecao < 1 || selecao > 3);
+		try {
+			if (selecao == 1) {
+				String cpf = Console.readLine("CPF:");
+				Double limiteCredito = Console.readDouble("Limite de crédito:");
+				
+				Cliente cliente = new Cliente(null, nome, tel, email, dataCad, cpf, limiteCredito);
+				
+				objBiz.inserirPessoa(cliente);
+			} else if (selecao == 2) {
+				String cpf = Console.readLine("CPF:");
+				Double metaMensal;
+				do {
+					metaMensal = Console.readDouble("Meta mensal:");
+				} while (metaMensal <= 0);
 
-			Vendedor vendedor = new Vendedor(null, nome, tel, email, dataCad, cpf, metaMensal);
-			
-			objBiz.inserirPessoa(vendedor);
-		} else {
-			String cnpj = Console.readLine("CNPJ:");
-			String nomeContato = Console.readLine("Nome contato:");
-			
-			Fornecedor fornecedor = new Fornecedor(null, nome, tel, email, dataCad, cnpj, nomeContato);
-			
-			objBiz.inserirPessoa(fornecedor);
+				Vendedor vendedor = new Vendedor(null, nome, tel, email, dataCad, cpf, metaMensal);
+				
+				objBiz.inserirPessoa(vendedor);
+			} else {
+				String cnpj = Console.readLine("CNPJ:");
+				String nomeContato = Console.readLine("Nome contato:");
+				
+				Fornecedor fornecedor = new Fornecedor(null, nome, tel, email, dataCad, cnpj, nomeContato);
+				
+				objBiz.inserirPessoa(fornecedor);
+			}
+			System.out.println("Inserido com sucesso!");
+		} catch (SisComException e) {
+			System.out.println(e.getMensagemErro());
 		}
-		System.out.println("Inserido com sucesso!");
+		
 	}
 }

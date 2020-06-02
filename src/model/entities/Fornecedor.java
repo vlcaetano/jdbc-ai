@@ -42,6 +42,6 @@ public class Fornecedor extends Pessoa {
 
 	@Override
 	public String toString() {
-		return super.toString() + " Fornecedor [cnpj=" + cnpj + ", nomeContato=" + nomeContato + "]";
+		return super.toString() + " - CNPJ: " + cnpj + " - Nome Contato: " + nomeContato;
 	}
 }

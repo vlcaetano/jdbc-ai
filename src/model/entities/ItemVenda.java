@@ -45,6 +45,8 @@ public class ItemVenda implements Serializable {
 
 	@Override
 	public String toString() {
-		return "ItemVenda [produto=" + produto + ", quantVenda=" + quantVenda + ", valorVenda=" + valorVenda + "]";
+		return getProduto().getNome() + " - " 
+				+ getQuantVenda() + " - R$" 
+				+ String.format("%.2f", getValorVenda());
 	}
 }

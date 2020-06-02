@@ -1,7 +1,7 @@
 package model.entities;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -83,7 +83,10 @@ public class Compra implements Serializable{
 
 	@Override
 	public String toString() {
-		return "Compra [numCompra=" + numCompra + ", fornecedor=" + fornecedor + ", compraItens=" + compraItens
-				+ ", dataCompra=" + dataCompra + "]";
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		
+		return "Data: " + sdf.format(getDataCompra())
+		+ " - Fornecedor: " + getFornecedor().getNome()
+		+ " - Código da compra: " + getNumCompra();
 	}
 }

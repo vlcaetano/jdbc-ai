@@ -132,11 +132,11 @@ public class VendaDaoJDBC implements VendaDao {
 				throw new SisComException("Não foi encontrada a venda para o código");
 			}
 			
-			while (rs.next()) {
+			do {
 				Produto produto = produtoDao.encontrarPorCodigo(rs.getInt("CodProduto"));
 				produto.adicionarQuantidade(rs.getInt("QuantVenda"));
 				atualizarEstoque(produto.getEstoque(), produto.getCodigo());
-			}
+			} while (rs.next());
 			//apagar na tabela itemvenda
 			st2 = conn.prepareStatement("DELETE FROM itemvenda WHERE CodVenda = ?");			
 			st2.setInt(1, codVenda);			
@@ -162,7 +162,8 @@ public class VendaDaoJDBC implements VendaDao {
 		
 		try {
 			st = conn.prepareStatement(
-					"SELECT venda.*, vendedor.Nome as VendNome, cliente.Nome as CliNome "
+					"SELECT venda.*, vendedor.Nome as VendNome, vendedor.Cpf as VendCpf, "
+					+ "cliente.Nome as CliNome, cliente.Cpf as CliCpf "
 					+ "FROM venda INNER JOIN vendedor "
 					+ "ON venda.CodVendedor = vendedor.CodVendedor "
 					+ "INNER JOIN cliente "
@@ -176,20 +177,7 @@ public class VendaDaoJDBC implements VendaDao {
 			Map<Integer, Cliente> map2 = new HashMap<>();
 			
 			while (rs.next()) {
-				
-				Vendedor vendedor = map.get(rs.getInt("CodVendedor"));
-				if (vendedor == null) {
-					vendedor = instanciarVendedor(rs);
-					map.put(rs.getInt("CodVendedor"), vendedor);
-				}
-				
-				Cliente cliente = map2.get(rs.getInt("CodCliente"));
-				if (cliente == null) {
-					cliente = instanciarCliente(rs);
-					map2.put(rs.getInt("CodCliente"), cliente);
-				}
-							
-				Venda obj = instanciarVenda(rs, vendedor, cliente);		
+				Venda obj = criarVenda(map, map2, rs);
 				list.add(obj);
 			}
 			return list;
@@ -201,7 +189,104 @@ public class VendaDaoJDBC implements VendaDao {
 			DB.closeResultSet(rs);
 		}
 	}
+	
+	@Override
+	public List<Venda> encontrarVendasNomeCliente(String nome) {
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		
+		try {
+			st = conn.prepareStatement(
+					"SELECT venda.*, vendedor.Nome as VendNome, vendedor.Cpf as VendCpf, "
+					+ "cliente.Nome as CliNome, cliente.Cpf as CliCpf "
+					+ "FROM venda INNER JOIN vendedor "
+					+ "ON venda.CodVendedor = vendedor.CodVendedor "
+					+ "INNER JOIN cliente "
+					+ "ON venda.CodCliente = cliente.CodCliente "
+					+ "WHERE cliente.nome LIKE '" + nome + "%' "
+					+ "ORDER BY cliente.Nome");
+			
+			rs = st.executeQuery();
+			
+			if (!rs.next()) {
+				return null;
+			}
+			
+			List<Venda> list = new ArrayList<>();
+			Map<Integer, Vendedor> map = new HashMap<>();
+			Map<Integer, Cliente> map2 = new HashMap<>();
+			
+			do {
+				Venda obj = criarVenda(map, map2, rs);
+				list.add(obj);
+			} while(rs.next());
+			return list;
+			
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
+		}
+	}
+	
+	@Override
+	public List<Venda> encontrarVendasNomeVendedor(String nome) {
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		
+		try {
+			st = conn.prepareStatement(
+					"SELECT venda.*, vendedor.Nome as VendNome, vendedor.Cpf as VendCpf, "
+					+ "cliente.Nome as CliNome, cliente.Cpf as CliCpf "
+					+ "FROM venda INNER JOIN vendedor "
+					+ "ON venda.CodVendedor = vendedor.CodVendedor "
+					+ "INNER JOIN cliente "
+					+ "ON venda.CodCliente = cliente.CodCliente "
+					+ "WHERE vendedor.nome LIKE '" + nome + "%' "
+					+ "ORDER BY vendedor.Nome");
 
+			rs = st.executeQuery();
+			
+			if (!rs.next()) {
+				return null;
+			}
+			
+			List<Venda> list = new ArrayList<>();
+			Map<Integer, Vendedor> map = new HashMap<>();
+			Map<Integer, Cliente> map2 = new HashMap<>();
+			
+			do {
+				Venda obj = criarVenda(map, map2, rs);						
+				list.add(obj);
+			} while (rs.next());
+			return list;
+			
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
+		}
+	}
+
+
+	private Venda criarVenda(Map<Integer, Vendedor> map, Map<Integer, Cliente> map2, ResultSet rs) throws SQLException {
+		Vendedor vendedor = map.get(rs.getInt("CodVendedor"));
+		if (vendedor == null) {
+			vendedor = instanciarVendedor(rs);
+			map.put(rs.getInt("CodVendedor"), vendedor);
+		}
+		
+		Cliente cliente = map2.get(rs.getInt("CodCliente"));
+		if (cliente == null) {
+			cliente = instanciarCliente(rs);
+			map2.put(rs.getInt("CodCliente"), cliente);
+		}
+					
+		Venda obj = instanciarVenda(rs, vendedor, cliente);
+		return obj;
+	}
 
 	private Venda instanciarVenda(ResultSet rs, Vendedor vendedor, Cliente cliente) throws SQLException {
 		Venda venda = new Venda();
@@ -210,13 +295,39 @@ public class VendaDaoJDBC implements VendaDao {
 		venda.setVendedor(vendedor);
 		venda.setFormaPagto(rs.getInt("FormaPagamento"));
 		venda.setDataVenda(rs.getDate("DataVenda"));
+		venda.setVendaItens(criarListaItemVenda(venda.getNumVenda()));
 		return venda;
+	}
+	
+	private List<ItemVenda> criarListaItemVenda(Integer codVenda){
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		List<ItemVenda> lista = new ArrayList<>();
+		ProdutoDao produtoDao = DaoFactory.criarProdutoDao();
+		try {
+			st = conn.prepareStatement("SELECT * FROM itemvenda WHERE CodVenda = ?");			
+			st.setInt(1, codVenda);
+			
+			rs = st.executeQuery();
+			while (rs.next()) {
+				Produto produto = produtoDao.encontrarPorCodigo(rs.getInt("CodProduto"));
+				lista.add(new ItemVenda(produto, rs.getInt("QuantVenda")));
+			}
+			return lista;
+			
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
+		}
 	}
 
 	private Vendedor instanciarVendedor(ResultSet rs) throws SQLException {
 		Vendedor vendedor = new Vendedor();
 		vendedor.setCodigo(rs.getInt("CodVendedor"));
 		vendedor.setNome(rs.getString("VendNome"));
+		vendedor.setCpf(rs.getString("VendCpf"));
 		return vendedor;
 	}
 	
@@ -224,6 +335,7 @@ public class VendaDaoJDBC implements VendaDao {
 		Cliente cliente = new Cliente();
 		cliente.setCodigo(rs.getInt("CodCliente"));
 		cliente.setNome(rs.getString("CliNome"));
+		cliente.setCpf("CliCpf");
 		return cliente;
 	}
 }

@@ -13,6 +13,7 @@ import db.DbException;
 import db.DbIntegrityException;
 import model.dao.VendedorDao;
 import model.entities.Vendedor;
+import model.exceptions.SisComException;
 
 public class VendedorDaoJDBC implements VendedorDao {
 
@@ -23,14 +24,14 @@ public class VendedorDaoJDBC implements VendedorDao {
 	}
 	
 	@Override
-	public void inserirVendedor(Vendedor obj) {
+	public void inserirVendedor(Vendedor obj) throws SisComException {
 		
 		PreparedStatement st = null;
 		
 		try {
 			//Teste para ver se cpf já está cadastrado
 			if (encontrarPorCpf(obj.getCpf()) != null) {
-				throw new DbIntegrityException("Erro! CPF já cadastrado!");
+				throw new SisComException("Erro! CPF já cadastrado!");
 			}
 			
 			st = conn.prepareStatement(
@@ -57,12 +58,10 @@ public class VendedorDaoJDBC implements VendedorDao {
 				}
 				DB.closeResultSet(rs);
 			} else {
-				throw new DbException("Erro! Nenhuma linha foi alterada!");
+				throw new SisComException("Erro! Nenhuma linha foi alterada!");
 			}
 		} catch (SQLException e) {
 			throw new DbException(e.getMessage());
-		} catch (DbIntegrityException e) {
-			System.out.println(e.getMessage());
 		} finally {
 			DB.closeStatement(st);
 		}
@@ -153,5 +152,50 @@ public class VendedorDaoJDBC implements VendedorDao {
 		return obj;
 	}
 
-
+	@Override
+	public List<String> estatisticaVendedor() {
+		List<String> lista = new ArrayList<>();
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		PreparedStatement st2 = null;
+		ResultSet rs2 = null;
+		
+		try {
+			st = conn.prepareStatement(
+					"SELECT vendedor.CodVendedor, vendedor.Nome, sum(itemvenda.valorVenda) as total " 
+					+ "FROM vendedor INNER JOIN venda " 
+					+ "ON vendedor.CodVendedor = venda.CodVendedor " 
+					+ "INNER JOIN itemvenda "
+					+ "ON itemvenda.CodVenda = venda.CodVenda " 
+					+ "GROUP BY vendedor.CodVendedor, vendedor.Nome "
+					+ "ORDER BY vendedor.Nome");
+			
+			rs = st.executeQuery();
+			if (!rs.next()) {
+				return null;
+			}
+			
+			do {
+				st2 = conn.prepareStatement(
+						"SELECT count(*) as 'Qtd Vendas' "
+						+ "FROM venda "
+						+ "WHERE CodVendedor = " + rs.getInt("CodVendedor"));
+				rs2 = st2.executeQuery();
+				
+				if (rs2.next()) {
+					lista.add("Nome: " + rs.getString("Nome") 
+					+ " - Número de vendas realizadas: " + rs2.getInt("Qtd Vendas")
+					+ " - Total das vendas: R$" + String.format("%.2f", rs.getDouble("total")));
+				}
+			}while (rs.next());
+			return lista;
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeStatement(st2);
+			DB.closeResultSet(rs);
+			DB.closeResultSet(rs2);
+		}
+	}
 }

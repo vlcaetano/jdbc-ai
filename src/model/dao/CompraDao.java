@@ -10,4 +10,5 @@ public interface CompraDao {
 	void fazerCompra(Compra compra);
 	void deletarCompra(Integer cod) throws SisComException;
 	List<Compra> encontrarCompras();
+	List<Compra> encontrarComprasNomeFornecedor(String nome);
 }

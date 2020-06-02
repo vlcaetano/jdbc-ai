@@ -1,6 +1,7 @@
 package model.entities;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public abstract class Pessoa implements Comparable<Pessoa>, Serializable {
@@ -98,7 +99,8 @@ public abstract class Pessoa implements Comparable<Pessoa>, Serializable {
 
 	@Override
 	public String toString() {
-		return "Pessoa [codigo=" + codigo + ", nome=" + nome + ", telefone=" + telefone + ", email=" + email
-				+ ", dataCad=" + dataCad + "]";
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		return "Código: " + codigo + " - Nome: " + nome + " - Tel: " + telefone
+				+ " - Email: " + email + " - Data cadastro: " + sdf.format(dataCad);
 	}
 }

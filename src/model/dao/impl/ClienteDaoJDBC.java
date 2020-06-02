@@ -13,6 +13,7 @@ import db.DbException;
 import db.DbIntegrityException;
 import model.dao.ClienteDao;
 import model.entities.Cliente;
+import model.exceptions.SisComException;
 
 public class ClienteDaoJDBC implements ClienteDao {
 
@@ -23,14 +24,14 @@ public class ClienteDaoJDBC implements ClienteDao {
 	}
 	
 	@Override
-	public void inserirCliente(Cliente obj) {
+	public void inserirCliente(Cliente obj) throws SisComException {
 		
 		PreparedStatement st = null;
 		
 		try {
 			//Teste para ver se cpf já está cadastrado
 			if (encontrarPorCpf(obj.getCpf()) != null) {
-				throw new DbIntegrityException("Erro! CPF já cadastrado!");
+				throw new SisComException("Erro! CPF já cadastrado!");
 			}
 			
 			st = conn.prepareStatement(
@@ -57,7 +58,7 @@ public class ClienteDaoJDBC implements ClienteDao {
 				}
 				DB.closeResultSet(rs);
 			} else {
-				throw new DbException("Erro! Nenhuma linha foi alterada!");
+				throw new SisComException("Erro! Nenhuma linha foi alterada!");
 			}
 		} catch (SQLException e) {
 			throw new DbException(e.getMessage());
@@ -142,7 +143,6 @@ public class ClienteDaoJDBC implements ClienteDao {
 
 	private Cliente instanciarCliente(ResultSet rs) throws SQLException {
 		Cliente obj = new Cliente();
-		//CodCliente, Nome, Telefone, Email, DataCadastro, Cpf, LimiteCredito
 		obj.setCodigo(rs.getInt("CodCliente"));
 		obj.setNome(rs.getString("Nome"));
 		obj.setTelefone(rs.getString("Telefone"));
@@ -153,5 +153,50 @@ public class ClienteDaoJDBC implements ClienteDao {
 		return obj;
 	}
 
-
+	@Override
+	public List<String> estatisticaCliente() {
+		List<String> lista = new ArrayList<>();
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		PreparedStatement st2 = null;
+		ResultSet rs2 = null;
+		
+		try {
+			st = conn.prepareStatement(
+					"SELECT cliente.CodCliente, cliente.Nome, sum(itemvenda.valorVenda) as total " 
+					+ "FROM cliente INNER JOIN venda " 
+					+ "ON cliente.CodCliente = venda.CodCliente " 
+					+ "INNER JOIN itemvenda "
+					+ "ON itemvenda.CodVenda = venda.CodVenda " 
+					+ "GROUP BY cliente.CodCliente, cliente.Nome "
+					+ "ORDER BY cliente.Nome");
+			
+			rs = st.executeQuery();
+			if (!rs.next()) {
+				return null;
+			}
+			
+			 do {
+				st2 = conn.prepareStatement(
+						"SELECT count(*) as 'Qtd Compras' "
+						+ "FROM venda "
+						+ "WHERE CodCliente = " + rs.getInt("CodCliente"));
+				rs2 = st2.executeQuery();
+				
+				if (rs2.next()) {
+					lista.add("Nome: " + rs.getString("Nome") 
+					+ " - Número de compras: " + rs2.getInt("Qtd Compras")
+					+ " - Total gasto: R$" + String.format("%.2f", rs.getDouble("total")));
+				}
+			} while (rs.next());
+			return lista;
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeStatement(st2);
+			DB.closeResultSet(rs);
+			DB.closeResultSet(rs2);
+		}
+	}
 }

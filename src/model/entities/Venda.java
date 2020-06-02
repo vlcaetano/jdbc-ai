@@ -1,7 +1,7 @@
 package model.entities;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -57,7 +57,7 @@ public class Venda implements Serializable{
 		return vendaItens;
 	}
 
-	public void setVendaItens(ArrayList<ItemVenda> vendaItens) {
+	public void setVendaItens(List<ItemVenda> vendaItens) {
 		this.vendaItens = vendaItens;
 	}
 
@@ -104,7 +104,11 @@ public class Venda implements Serializable{
 
 	@Override
 	public String toString() {
-		return "Venda [numVenda=" + numVenda + ", cliente=" + cliente + ", vendedor=" + vendedor + ", vendaItens="
-				+ vendaItens + ", formaPagto=" + formaPagto + ", dataVenda=" + dataVenda + "]";
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		
+		return "Data: " + sdf.format(getDataVenda())		
+			+ " - Cliente: " + getCliente().getNome()
+			+ " - Vendedor: " + getVendedor().getNome()
+			+ " - Código da venda: " + getNumVenda();
 	}
 }

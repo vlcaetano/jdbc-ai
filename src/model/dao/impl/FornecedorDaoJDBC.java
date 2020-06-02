@@ -13,6 +13,7 @@ import db.DbException;
 import db.DbIntegrityException;
 import model.dao.FornecedorDao;
 import model.entities.Fornecedor;
+import model.exceptions.SisComException;
 
 public class FornecedorDaoJDBC implements FornecedorDao {
 
@@ -23,14 +24,14 @@ public class FornecedorDaoJDBC implements FornecedorDao {
 	}
 	
 	@Override
-	public void inserirFornecedor(Fornecedor obj) {
+	public void inserirFornecedor(Fornecedor obj) throws SisComException {
 		
 		PreparedStatement st = null;
 		
 		try {
 			//Teste para ver se cnpj já está cadastrado
 			if (encontrarPorCnpj(obj.getCnpj()) != null) {
-				throw new DbIntegrityException("Erro! CNPJ já cadastrado!");
+				throw new SisComException("Erro! CNPJ já cadastrado!");
 			}
 			
 			st = conn.prepareStatement(
@@ -57,12 +58,10 @@ public class FornecedorDaoJDBC implements FornecedorDao {
 				}
 				DB.closeResultSet(rs);
 			} else {
-				throw new DbException("Erro! Nenhuma linha foi alterada!");
+				throw new SisComException("Erro! Nenhuma linha foi alterada!");
 			}
 		} catch (SQLException e) {
 			throw new DbException(e.getMessage());
-		} catch (DbIntegrityException e) {
-			System.out.println(e.getMessage());
 		} finally {
 			DB.closeStatement(st);
 		}
@@ -142,7 +141,6 @@ public class FornecedorDaoJDBC implements FornecedorDao {
 
 	private Fornecedor instanciarFornecedor(ResultSet rs) throws SQLException {
 		Fornecedor obj = new Fornecedor();
-		//CodFornecedor, Nome, Telefone, Email, DataCadastro, Cnpj, NomeContato
 		obj.setCodigo(rs.getInt("CodFornecedor"));
 		obj.setNome(rs.getString("Nome"));
 		obj.setTelefone(rs.getString("Telefone"));
@@ -153,5 +151,51 @@ public class FornecedorDaoJDBC implements FornecedorDao {
 		return obj;
 	}
 
-
+	@Override
+	public List<String> estatisticaFornecedor() {
+		List<String> lista = new ArrayList<>();
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		PreparedStatement st2 = null;
+		ResultSet rs2 = null;
+		
+		try {
+			st = conn.prepareStatement(
+					"SELECT fornecedor.CodFornecedor, fornecedor.Nome, sum(itemcompra.valorCompra) as total " 
+					+ "FROM fornecedor INNER JOIN compra " 
+					+ "ON fornecedor.CodFornecedor = compra.CodFornecedor " 
+					+ "INNER JOIN itemcompra "
+					+ "ON itemcompra.CodCompra = compra.CodCompra " 
+					+ "GROUP BY fornecedor.CodFornecedor, fornecedor.Nome "
+					+ "ORDER BY fornecedor.Nome");
+			
+			rs = st.executeQuery();
+			if (!rs.next()) {
+				return null;
+			}
+			
+			do {
+				st2 = conn.prepareStatement(
+						"SELECT count(*) AS 'Qtd Comprada' "
+						+ "FROM compra "
+						+ "WHERE CodFornecedor = " + rs.getInt("CodFornecedor"));
+				rs2 = st2.executeQuery();
+				
+				if (rs2.next()) {
+					lista.add("Fornecedor: " + rs.getString("Nome") 
+					+ " - Número de compras: " + rs2.getInt("Qtd Comprada")
+					+ " - Total gasto: R$" + String.format("%.2f", rs.getDouble("total")));
+				}
+			}while (rs.next());
+			return lista;
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeStatement(st2);
+			DB.closeResultSet(rs);
+			DB.closeResultSet(rs2);
+		}
+	}
+	
 }

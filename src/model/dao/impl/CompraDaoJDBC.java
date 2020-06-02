@@ -118,18 +118,19 @@ public class CompraDaoJDBC implements CompraDao {
 		ResultSet rs = null;
 		
 		try {
-			//atualizar o estoque
+			//encontrar produtos na compra
 			st = conn.prepareStatement("SELECT CodProduto, QuantCompra FROM itemcompra WHERE CodCompra = ?");
 			st.setInt(1, codCompra);
 			rs = st.executeQuery();
 			if (!rs.next()) {
 				throw new SisComException("Não foi encontrada a compra para o código");
 			}
-			while (rs.next()) {
+			//atualizar o estoque
+			 do {
 				Produto produto = produtoDao.encontrarPorCodigo(rs.getInt("CodProduto"));
 				produto.decrementarQuantidade(rs.getInt("QuantCompra"));
 				atualizarEstoque(produto.getEstoque(), produto.getCodigo());
-			}
+			} while (rs.next());
 			//apagar na tabela itemcompra
 			st2 = conn.prepareStatement("DELETE FROM itemcompra WHERE CodCompra = ?");			
 			st2.setInt(1, codCompra);			
@@ -177,6 +178,48 @@ public class CompraDaoJDBC implements CompraDao {
 				Compra obj = instanciarCompra(rs, fornecedor);				
 				list.add(obj);
 			}
+			return list;
+			
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
+		}
+	}
+	
+	@Override
+	public List<Compra> encontrarComprasNomeFornecedor(String nome){
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		
+		try {
+			st = conn.prepareStatement(
+					"SELECT compra.*, fornecedor.Nome "
+					+ "FROM compra INNER JOIN fornecedor "
+					+ "ON compra.CodFornecedor = fornecedor.CodFornecedor "
+					+ "WHERE fornecedor.nome LIKE '" + nome + "%' "
+					+ "ORDER BY fornecedor.Nome");
+					
+			rs = st.executeQuery();
+			
+			if (!rs.next()) {
+				return null;
+			}
+			
+			List<Compra> list = new ArrayList<>();
+			Map<Integer, Fornecedor> map = new HashMap<>();
+			
+			 do {				
+				Fornecedor fornecedor = map.get(rs.getInt("CodFornecedor"));
+				if (fornecedor == null) {
+					fornecedor = instanciarFornecedor(rs);
+					map.put(rs.getInt("CodFornecedor"), fornecedor);
+				}
+							
+				Compra obj = instanciarCompra(rs, fornecedor);				
+				list.add(obj);
+			} while (rs.next());
 			return list;
 			
 		} catch (SQLException e) {
