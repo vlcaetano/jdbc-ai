@@ -13,11 +13,20 @@ import db.DbException;
 import db.DbIntegrityException;
 import model.dao.ProdutoDao;
 import model.entities.Produto;
-
+/**
+ * 
+ * @author Vitor Lima Caetano
+ *
+ */
 public class ProdutoDaoJDBC implements ProdutoDao {
-
+/**
+ * Classe ProdutoDaoJDBC - Métodos para comunicar com o banco de dados
+ */
 	Connection conn;
-	
+	/**
+	 * Criar conexão com o banco de dados
+	 * @param conn
+	 */
 	public ProdutoDaoJDBC(Connection conn) {
 		this.conn = conn;
 	}
@@ -165,6 +174,12 @@ public class ProdutoDaoJDBC implements ProdutoDao {
 		}
 	}
 
+	/**
+	 * Método para instanciar objeto do tipo Produto
+	 * @param rs
+	 * @return objeto Produto
+	 * @throws SQLException
+	 */
 	private Produto instanciarProduto(ResultSet rs) throws SQLException {
 		Produto obj = new Produto();
 		obj.setCodigo(rs.getInt("CodProduto"));
@@ -176,6 +191,4 @@ public class ProdutoDaoJDBC implements ProdutoDao {
 				
 		return obj;
 	}
-
-
 }

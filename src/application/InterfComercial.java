@@ -18,15 +18,28 @@ import model.entities.Venda;
 import model.entities.Vendedor;
 import model.exceptions.SisComException;
 import util.Console;
-
+/**
+ * 
+ * @author Vitor Lima Caetano
+ *
+ */
 public class InterfComercial {
-	
+/**
+ * Classe InterfComercial - métodos para usuário utilizar o programa através do console
+ */
 	private static Comercial objBiz = new Comercial();
 
+	/**
+	 * Método main
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		menu();
 	}
 
+	/**
+	 * Método para mostrar o menu ao usuário e chamar os devidos métodos
+	 */
 	private static void menu() {
 		System.out.println("******** Controle de vendas ********");
 		int opcao = 0;
@@ -81,6 +94,9 @@ public class InterfComercial {
 
 	}
 
+	/**
+	 * Método para mostrar as estatísticas
+	 */
 	private static void estatisticas() {
 		int selecao;
 		List<String> lista = new ArrayList<>();
@@ -107,6 +123,9 @@ public class InterfComercial {
 		}
 	}
 
+	/**
+	 * Método para listar compras e vendas por período
+	 */
 	private static void listarPorPeriodo() {
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 		Date dataInicio = null;
@@ -176,6 +195,9 @@ public class InterfComercial {
 		}
 	}
 
+	/**
+	 * Método para excluir dados do banco
+	 */
 	private static void excluir() {
 		String cpf, cnpj;
 		int cod;
@@ -244,6 +266,9 @@ public class InterfComercial {
 		}
 	}
 
+	/**
+	 * Método para listar todos as pessoas ou produtos, dependendo da escolha do usuário
+	 */
 	private static void listar() {
 		int selecao;
 		do {
@@ -300,6 +325,9 @@ public class InterfComercial {
 		}
 	}
 
+	/**
+	 * Método para consultar em específico uma pessoa ou produto, dependendo da escolha do usuário
+	 */
 	private static void consultar() {
 		String cpf, cnpj;
 		int cod;
@@ -348,6 +376,9 @@ public class InterfComercial {
 		}
 	}
 
+	/**
+	 * Método para receber dados da venda e inserir no banco de dados
+	 */
 	private static void fazerVenda() {
 		List<ItemVenda> listaVenda = new ArrayList<>();
 		int cod;
@@ -425,6 +456,9 @@ public class InterfComercial {
 		}
 	}
 
+	/**
+	 * Método para receber dados da compra e inserir no banco de dados
+	 */
 	private static void fazerCompra() {
 		List<ItemCompra> listaCompra = new ArrayList<>();
 		int selecao = 0;
@@ -472,6 +506,9 @@ public class InterfComercial {
 		System.out.println("Compra realizada! Código = " + novaCompra.getNumCompra());
 	}
 
+	/**
+	 * Método para inserir produto no banco de dados
+	 */
 	private static void inserirProduto() {
 		String nome = Console.readLine("Nome:");
 		Double precoUnitario;
@@ -493,6 +530,9 @@ public class InterfComercial {
 		System.out.println("Inserido com sucesso!");
 	}
 
+	/**
+	 * Método para inserir uma pessoa no banco de dados
+	 */
 	private static void inserirPessoa() {
 		String nome = Console.readLine("Nome:");
 		String tel = Console.readLine("Tel:");
@@ -534,6 +574,5 @@ public class InterfComercial {
 		} catch (SisComException e) {
 			System.out.println(e.getMensagemErro());
 		}
-		
 	}
 }
